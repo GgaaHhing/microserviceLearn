@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+option go_package = "./pb";
+
+package pb;
+
+service AccountService {
+  rpc GetAccountList(PagingRequest) returns (AccountListRes);
+  rpc GetAccountByMobile(MobileRequest) returns (AccountRes);
+  rpc GetAccountById(IdRequest) returns (AccountRes);
+  rpc AddAccount(AddAccountRequest) returns (AccountRes);
+  rpc UpdateAccount(UpdateAccountRequest) returns (UpdateAccountRes);
+  rpc CheckPassword(CheckPasswordRequest) returns(CheckPasswordRes);
+}
+
+message PagingRequest{
+  uint32 pageNo=1;
+  uint32 pageSize=2;
+}
+
+message AccountRes {
+  int32 id = 1;
+  string mobile = 2;
+  string password = 3;
+  string nickname = 4;
+  string gender = 5 ;
+  uint32 role = 6;
+}
+
+message AccountListRes{
+  int32 total = 1;
+  repeated AccountRes accountList = 2;
+}
+
+message MobileRequest {
+  string mobile = 1;
+}
+
+message IdRequest {
+  int32 id = 1;
+}
+
+message AddAccountRequest{
+  string mobile = 1;
+  string password = 2;
+  string nickName = 3;
+  string gender = 4;
+}
+
+message UpdateAccountRequest {
+  uint32 id = 1;
+  string mobile = 2;
+  string password = 3;
+  string nickName = 4;
+  string gender = 5;
+  uint32 role = 6;
+}
+
+message UpdateAccountRes {
+  bool result = 1;
+}
+
+message CheckPasswordRequest {
+  int32 AccountId = 1;
+  string password = 2;
+  string hashedPassword = 3;
+}
+
+message CheckPasswordRes {
+  bool result = 1;
+}
