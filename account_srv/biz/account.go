@@ -39,7 +39,7 @@ func Model2Pb(account *model.Account) *pb.AccountRes {
 		Password: account.Password,
 		Nickname: account.NickName,
 		Gender:   account.Gender,
-		Role:     uint32(account.Role),
+		Role:     int32(account.Role),
 	}
 	return accountRes
 }

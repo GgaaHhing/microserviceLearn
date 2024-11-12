@@ -15,6 +15,6 @@ func init() {
 func NewLogger() (*zap.Logger, error) {
 	pro := zap.NewProductionConfig()
 	pro.OutputPaths = append(pro.OutputPaths,
-		"./accountHandler.log")
+		"microservice/accountHandler.log")
 	return pro.Build()
 }

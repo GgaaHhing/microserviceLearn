@@ -14,8 +14,8 @@ service AccountService {
 }
 
 message PagingRequest{
-  uint32 pageNo=1;
-  uint32 pageSize=2;
+  int32 pageNo=1;
+  int32 pageSize=2;
 }
 
 message AccountRes {
@@ -24,7 +24,7 @@ message AccountRes {
   string password = 3;
   string nickname = 4;
   string gender = 5 ;
-  uint32 role = 6;
+  int32 role = 6;
 }
 
 message AccountListRes{
@@ -48,12 +48,12 @@ message AddAccountRequest{
 }
 
 message UpdateAccountRequest {
-  uint32 id = 1;
+  int32 id = 1;
   string mobile = 2;
   string password = 3;
   string nickName = 4;
   string gender = 5;
-  uint32 role = 6;
+  int32 role = 6;
 }
 
 message UpdateAccountRes {

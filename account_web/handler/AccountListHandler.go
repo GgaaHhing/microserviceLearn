@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"net/http"
+	"strconv"
 	"testProject/microservice/account_srv/proto/pb"
 	"testProject/microservice/account_web/res"
 	"testProject/microservice/custom_error"
@@ -31,6 +32,8 @@ func HandleError(err error) string {
 }
 
 func AccountListHandler(ctx *gin.Context) {
+	pageNoStr := ctx.DefaultQuery("pageNo", "1")
+	pageSizeStr := ctx.DefaultQuery("pageSize", "3")
 	conn, err := grpc.Dial("127.0.0.1:9095", grpc.WithInsecure())
 	if err != nil {
 		s := fmt.Sprintf("AccountListHandler-GRPC拨号失败: %v", err)
@@ -42,10 +45,13 @@ func AccountListHandler(ctx *gin.Context) {
 		return
 	}
 
+	pageNo, _ := strconv.ParseInt(pageNoStr, 10, 32)
+	pageSize, _ := strconv.ParseInt(pageSizeStr, 10, 32)
+
 	client := pb.NewAccountServiceClient(conn)
 	accountRes, err := client.GetAccountList(context.Background(), &pb.PagingRequest{
-		PageNo:   1,
-		PageSize: 3,
+		PageNo:   int32(pageNo),
+		PageSize: int32(pageSize),
 	})
 	if err != nil {
 		s := fmt.Sprintf("GetAccountList调用失败: %v", err.Error())
