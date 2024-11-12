@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm/logger"
 	"log"
 	"os"
-	"testProject/test/microservice/model"
+	"testProject/microservice/account_srv/model"
 	"time"
 )
 

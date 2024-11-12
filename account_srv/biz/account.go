@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"gorm.io/gorm"
-	"testProject/test/microservice/custom_error"
-	"testProject/test/microservice/internal"
-	"testProject/test/microservice/model"
-	"testProject/test/microservice/proto/pb"
+	"testProject/microservice/account_srv/internal"
+	"testProject/microservice/account_srv/model"
+	"testProject/microservice/account_srv/proto/pb"
+	"testProject/microservice/custom_error"
 )
 
 type AccountServer struct {
