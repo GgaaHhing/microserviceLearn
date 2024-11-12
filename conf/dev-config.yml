@@ -1,0 +1,3 @@
+appConfig:
+  jwt_op:
+    signing_key: "12345666"

@@ -8,11 +8,11 @@ import (
 	"time"
 )
 
-var (
-	TokenExpired     = errors.New("Token已过期")
-	TokenNotValueYet = errors.New("Token不再有效")
-	TokenMalformed   = errors.New("Token非法")
-	TokenInvalid     = errors.New("Token无效")
+const (
+	TokenExpired     = "Token已过期"
+	TokenNotValueYet = "Token不再有效"
+	TokenMalformed   = "Token非法"
+	TokenInvalid     = "Token无效"
 )
 
 type CustomClaims struct {
@@ -52,27 +52,28 @@ func (j *JWT) ParseToken(tokenStr string) (*CustomClaims, error) {
 		return j.SigningKey, nil
 	})
 	if err != nil {
-		if result, ok := err.(jwt.ValidationError); ok {
+		var result jwt.ValidationError
+		if errors.As(err, &result) {
 			switch result.Errors {
 			case jwt.ValidationErrorExpired:
-				return nil, TokenExpired
+				return nil, errors.New(TokenExpired)
 			case jwt.ValidationErrorNotValidYet:
-				return nil, TokenNotValueYet
+				return nil, errors.New(TokenNotValueYet)
 			case jwt.ValidationErrorMalformed:
-				return nil, TokenMalformed
+				return nil, errors.New(TokenMalformed)
 			default:
-				return nil, TokenInvalid
+				return nil, errors.New(TokenInvalid)
 			}
 		}
 	}
 
 	if token == nil || !token.Valid {
-		return nil, TokenInvalid
+		return nil, errors.New(TokenInvalid)
 	}
 
 	claims, ok := token.Claims.(*CustomClaims)
 	if !ok {
-		return nil, TokenInvalid
+		return nil, errors.New(TokenInvalid)
 	}
 
 	return claims, nil
@@ -100,7 +101,7 @@ func (j *JWT) RefreshToken(tokenStr string) (string, error) {
 	//return "", TokenInvalid
 	claims, err := j.ParseToken(tokenStr)
 	if err != nil {
-		return "", TokenInvalid
+		return "", errors.New(TokenInvalid)
 	}
 	claims.StandardClaims.ExpiresAt = time.Now().Add(time.Hour * 24).Unix()
 	return j.GenerateToken(*claims)
