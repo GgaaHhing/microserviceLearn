@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/hashicorp/consul/api"
 	"google.golang.org/grpc"
 	"net/http"
 	"regexp"
@@ -13,6 +14,7 @@ import (
 	"testProject/microservice/account_web/req"
 	"testProject/microservice/account_web/res"
 	"testProject/microservice/custom_error"
+	"testProject/microservice/internal"
 	"testProject/microservice/jwt_op"
 	"testProject/microservice/log"
 	"time"
@@ -37,9 +39,30 @@ func HandleError(err error) string {
 }
 
 func AccountListHandler(ctx *gin.Context) {
+	//通过注册中心调用服务端
+	conf := internal.ViperConf
+	defaultConfig := api.DefaultConfig()
+	defaultConfig.Address = fmt.Sprintf("%s:%d", conf.ConsulConfig.Host, conf.ConsulConfig.Port)
+	client, err := api.NewClient(defaultConfig)
+	if err != nil {
+		log.Logger.Error("AccountListHandler-创建consul失败: " + err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "服务端内部错误",
+		})
+		return
+	}
+	accountSrvHost := ""
+	accountSrvPort := 0
+	serviceList, err := client.Agent().ServicesWithFilter(`Service=="account-srv"`)
+	for _, v := range serviceList {
+		accountSrvHost = v.Address
+		accountSrvPort = v.Port
+	}
+
 	pageNoStr := ctx.DefaultQuery("pageNo", "1")
 	pageSizeStr := ctx.DefaultQuery("pageSize", "3")
-	conn, err := grpc.Dial("127.0.0.1:9095", grpc.WithInsecure())
+	grpcAddr := fmt.Sprintf("%s:%d", accountSrvHost, accountSrvPort)
+	conn, err := grpc.Dial(grpcAddr, grpc.WithInsecure())
 	if err != nil {
 		s := fmt.Sprintf("AccountListHandler-GRPC拨号失败: %v", err)
 		log.Logger.Info(s)
@@ -53,8 +76,8 @@ func AccountListHandler(ctx *gin.Context) {
 	pageNo, _ := strconv.ParseInt(pageNoStr, 10, 32)
 	pageSize, _ := strconv.ParseInt(pageSizeStr, 10, 32)
 
-	client := pb.NewAccountServiceClient(conn)
-	accountRes, err := client.GetAccountList(context.Background(), &pb.PagingRequest{
+	serviceClient := pb.NewAccountServiceClient(conn)
+	accountRes, err := serviceClient.GetAccountList(context.Background(), &pb.PagingRequest{
 		PageNo:   int32(pageNo),
 		PageSize: int32(pageSize),
 	})
@@ -166,5 +189,11 @@ func LoginByPasswordHandler(ctx *gin.Context) {
 		"msg":    "",
 		"result": "登录成功",
 		"token":  token,
+	})
+}
+
+func HealthHandler(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{
+		"msg": "ok",
 	})
 }

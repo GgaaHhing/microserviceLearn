@@ -1,0 +1,57 @@
+version: '3.1'
+
+services:
+  db:
+    image: mysql
+    restart: always
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./data:/var/lib/mysql
+
+  redis:
+    container_name: my-redis
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-data/:/data
+
+  consul1:
+    image: consul
+    container_name: node1
+    command: agent -server -bootstrap-except=3 -node=node1 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
+
+  consul2:
+    image: consul
+    container_name: node2
+    #要有一个加入的步骤
+    command: agent -retry-join=node1 -node=node2 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
+    #要依赖谁
+    depends_on:
+      - consul1
+
+  consul3:
+    image: consul
+    container_name: node3
+    #要有一个加入的步骤
+    command: agent -retry-join=node1 -node=node3 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
+    #要依赖谁
+    depends_on:
+      - consul1
+  #有一个consul需要拿出来做ui
+  consul4:
+    image: consul
+    container_name: node4
+    #要有一个加入的步骤,制作ui
+    command: agent -retry-join=node1 -node=node4 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1 -ui
+    #暴露在哪里
+    ports:
+      - "8500:8500"
+    #要依赖谁
+    depends_on:
+      - consul2
+      - consul3

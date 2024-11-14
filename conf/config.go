@@ -1,6 +1,9 @@
 package conf
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+	"github.com/spf13/viper"
+)
 
 type AppConfig struct {
 	JWTConfig JWTConfig `mapstructure:"jwt_op"`
@@ -10,7 +13,7 @@ var AppConf AppConfig
 
 func init() {
 	v := viper.New()
-	configName := "dev-config.yml"
+	configName := "microservice/dev-config.yaml"
 	v.SetConfigFile(configName)
 	err := v.ReadInConfig()
 	if err != nil {
@@ -20,4 +23,5 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("AppConfig 初始化成功....")
 }

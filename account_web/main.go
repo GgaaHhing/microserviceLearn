@@ -17,6 +17,9 @@ func main() {
 	{
 		accountGroup.GET("/list", handler.AccountListHandler)
 		accountGroup.POST("/login", handler.LoginByPasswordHandler)
+		//让浏览器获取到我们发送的图片验证码
+		accountGroup.GET("/captcha", handler.CaptchaHandler)
 	}
+	r.GET("/health", handler.HealthHandler)
 	r.Run(addr)
 }
