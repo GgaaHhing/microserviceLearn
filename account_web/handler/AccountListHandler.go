@@ -38,46 +38,65 @@ func HandleError(err error) string {
 	return ""
 }
 
-func AccountListHandler(ctx *gin.Context) {
+var accountSrvHost string
+var accountSrvPort int
+var client pb.AccountServiceClient
+
+func init() {
+	err := initConsul()
+	if err != nil {
+		panic(err)
+	}
+	err = initGrpcClient()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func initConsul() error {
 	//通过注册中心调用服务端
 	conf := internal.ViperConf
 	defaultConfig := api.DefaultConfig()
 	defaultConfig.Address = fmt.Sprintf("%s:%d", conf.ConsulConfig.Host, conf.ConsulConfig.Port)
-	client, err := api.NewClient(defaultConfig)
+	apiClient, err := api.NewClient(defaultConfig)
 	if err != nil {
 		log.Logger.Error("AccountListHandler-创建consul失败: " + err.Error())
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "服务端内部错误",
-		})
-		return
+		return err
 	}
-	accountSrvHost := ""
-	accountSrvPort := 0
-	serviceList, err := client.Agent().ServicesWithFilter(`Service=="account-srv"`)
+	serviceList, err := apiClient.Agent().ServicesWithFilter(`Service=="account_srv"`)
+	if err != nil {
+		log.Logger.Error("AccountListHandler-获取consul 服务列表失败: " + err.Error())
+	}
 	for _, v := range serviceList {
 		accountSrvHost = v.Address
 		accountSrvPort = v.Port
 	}
+	fmt.Println("accountSrvHost:", accountSrvHost, "\n",
+		"accountSrvPort: ", accountSrvPort)
+	return nil
+}
 
-	pageNoStr := ctx.DefaultQuery("pageNo", "1")
-	pageSizeStr := ctx.DefaultQuery("pageSize", "3")
+func initGrpcClient() error {
 	grpcAddr := fmt.Sprintf("%s:%d", accountSrvHost, accountSrvPort)
 	conn, err := grpc.Dial(grpcAddr, grpc.WithInsecure())
 	if err != nil {
 		s := fmt.Sprintf("AccountListHandler-GRPC拨号失败: %v", err)
 		log.Logger.Info(s)
-		e := HandleError(err)
-		ctx.JSON(http.StatusOK, gin.H{
-			"msg": e,
-		})
-		return
+		return err
 	}
+	client = pb.NewAccountServiceClient(conn)
+
+	return nil
+}
+
+func AccountListHandler(ctx *gin.Context) {
+	pageNoStr := ctx.DefaultQuery("pageNo", "1")
+	pageSizeStr := ctx.DefaultQuery("pageSize", "3")
 
 	pageNo, _ := strconv.ParseInt(pageNoStr, 10, 32)
 	pageSize, _ := strconv.ParseInt(pageSizeStr, 10, 32)
 
-	serviceClient := pb.NewAccountServiceClient(conn)
-	accountRes, err := serviceClient.GetAccountList(context.Background(), &pb.PagingRequest{
+	accountRes, err := client.GetAccountList(context.Background(), &pb.PagingRequest{
 		PageNo:   int32(pageNo),
 		PageSize: int32(pageSize),
 	})
@@ -90,6 +109,7 @@ func AccountListHandler(ctx *gin.Context) {
 		})
 		return
 	}
+
 	var resList []res.Account4Res
 	for _, item := range accountRes.AccountList {
 		resList = append(resList, Pb2Res(item))
@@ -130,17 +150,6 @@ func LoginByPasswordHandler(ctx *gin.Context) {
 		return
 	}
 
-	conn, err := grpc.Dial("127.0.0.1:9095", grpc.WithInsecure())
-	if err != nil {
-		log.Logger.Error("LoginByPassword 请求服务端出错，" + err.Error())
-		e := HandleError(err)
-		ctx.JSON(http.StatusOK, gin.H{
-			"msg": e,
-		})
-		return
-	}
-
-	client := pb.NewAccountServiceClient(conn)
 	accountRes, err := client.GetAccountByMobile(ctx, &pb.MobileRequest{
 		Mobile: loginByPassword.Mobile,
 	})

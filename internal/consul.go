@@ -62,6 +62,7 @@ func GetServiceList() error {
 	return nil
 }
 
+// FilterService 过滤
 func FilterService(filter string) error {
 	defaultConfig := api.DefaultConfig()
 	defaultConfig.Address = fmt.Sprintf("%s:%d",

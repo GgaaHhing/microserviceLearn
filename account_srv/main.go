@@ -3,14 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/hashicorp/consul/api"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/health"
-	"google.golang.org/grpc/health/grpc_health_v1"
 	"net"
 	"testProject/microservice/account_srv/biz"
 	"testProject/microservice/account_srv/proto/pb"
 	"testProject/microservice/internal"
+	"testProject/microservice/log"
 )
 
 func init() {
@@ -19,46 +17,45 @@ func init() {
 
 func main() {
 	conf := internal.ViperConf
-	addr := fmt.Sprintf("%s:%d", conf.AccountSrvConfig.Host, conf.AccountSrvConfig.Port)
+	srvAddress := fmt.Sprintf("%s:%d", conf.AccountSrvConfig.Host, conf.AccountSrvConfig.Port)
 
-	listen, err := net.Listen("tcp", addr)
-	if err != nil {
-		zap.S().Error("Account_srv 启动异常" + err.Error())
-		panic(err)
-	}
-	grpcServer := grpc.NewServer()
-	pb.RegisterAccountServiceServer(grpcServer, &biz.AccountServer{})
-
-	//让grpc在consul注册，集成服务
-	grpc_health_v1.RegisterHealthServer(grpcServer, health.NewServer())
+	// 创建一个新的 Consul 客户端
 	defaultConfig := api.DefaultConfig()
-	defaultConfig.Address = addr
-	client, err := api.NewClient(defaultConfig)
+	defaultConfig.Address = fmt.Sprintf("%s:%d", conf.ConsulConfig.Host, conf.ConsulConfig.Port)
+
+	consulClient, err := api.NewClient(defaultConfig)
 	if err != nil {
-		zap.S().Error("Account_srv 构造client异常" + err.Error())
+		log.Logger.Error("创建 consulClient失败： " + err.Error())
 		panic(err)
 	}
-	check := &api.AgentServiceCheck{
-		Interval:                       "1s",
-		Timeout:                        "3s",
-		GRPC:                           addr,
-		DeregisterCriticalServiceAfter: "5s",
-	}
+
 	req := &api.AgentServiceRegistration{
+		Address: conf.AccountSrvConfig.Host,
+		Port:    conf.AccountSrvConfig.Port,
 		Name:    conf.AccountSrvConfig.SrvName,
 		ID:      conf.AccountSrvConfig.SrvName,
-		Check:   check,
-		Port:    conf.AccountSrvConfig.Port,
 		Tags:    conf.AccountSrvConfig.Tags,
-		Address: addr,
 	}
-	err = client.Agent().ServiceRegister(req)
+
+	err = consulClient.Agent().ServiceRegister(req)
 	if err != nil {
-		zap.S().Error("Account_srv consul 构造异常" + err.Error())
+		log.Logger.Error("GRPC 部署 consul失败：" + err.Error())
 		panic(err)
 	}
 
-	if err := grpcServer.Serve(listen); err != nil {
+	// 监听并服务 gRPC 请求
+	lis, err := net.Listen("tcp", ":9095")
+	if err != nil {
+		log.Logger.Error(srvAddress + "监听失败：" + err.Error())
+		panic(err)
+	}
+	fmt.Println("gRPC 正在监听 :  " + srvAddress)
+
+	s := grpc.NewServer()
+	pb.RegisterAccountServiceServer(s, &biz.AccountServer{}) // 替换为你的服务接口和服务器实例
+
+	if err := s.Serve(lis); err != nil {
+		log.Logger.Error("GRPC 部署失败: " + err.Error())
 		panic(err)
 	}
 }

@@ -21,37 +21,45 @@ services:
       - ./redis-data/:/data
 
   consul1:
-    image: consul
-    container_name: node1
-    command: agent -server -bootstrap-except=3 -node=node1 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
-
-  consul2:
-    image: consul
-    container_name: node2
-    #要有一个加入的步骤
-    command: agent -retry-join=node1 -node=node2 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
-    #要依赖谁
-    depends_on:
-      - consul1
-
-  consul3:
-    image: consul
-    container_name: node3
-    #要有一个加入的步骤
-    command: agent -retry-join=node1 -node=node3 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
-    #要依赖谁
-    depends_on:
-      - consul1
-  #有一个consul需要拿出来做ui
-  consul4:
-    image: consul
-    container_name: node4
-    #要有一个加入的步骤,制作ui
-    command: agent -retry-join=node1 -node=node4 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1 -ui
-    #暴露在哪里
+    image: hashicorp/consul:latest
+    container_name: consul1
     ports:
       - "8500:8500"
-    #要依赖谁
-    depends_on:
-      - consul2
-      - consul3
+      - "8300:8300"
+      - "8301:8301"
+      - "8302:8302"
+      - "8600:8600"
+    command: [ "agent", "-server", "-bootstrap-expect=1", "-ui", "-bind=0.0.0.0", "-client=0.0.0.0" ]
+    restart: unless-stopped
+#  consul2:
+#    image: hashicorp/consul
+#    container_name: node2
+#    #要有一个加入的步骤
+#    command: agent -retry-join=consul1 -node=node2 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
+#    #要依赖谁
+#    depends_on:
+#      - consul1
+#
+#  consul3:
+#    image: hashicorp/consul
+#
+#    container_name: node3
+#    #要有一个加入的步骤
+#    command: agent -retry-join=consul1 -node=node3 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
+#    #要依赖谁
+#    depends_on:
+#      - consul1
+
+#  #有一个consul需要拿出来做ui
+#  consul4:
+#    image: hashicorp/consul
+#    container_name: node4
+#    #要有一个加入的步骤,制作ui
+#    command: agent -retry-join=consul1 -node=node4 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1 -ui
+#    #暴露在哪里
+#    ports:
+#      - "8500:8500"
+#    #要依赖谁
+#    depends_on:
+#      - consul2
+#      - consul3
