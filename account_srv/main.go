@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/hashicorp/consul/api"
 	"google.golang.org/grpc"
 	"net"
@@ -9,6 +10,7 @@ import (
 	"testProject/microservice/account_srv/proto/pb"
 	"testProject/microservice/internal"
 	"testProject/microservice/log"
+	"testProject/microservice/util"
 )
 
 func init() {
@@ -16,8 +18,9 @@ func init() {
 }
 
 func main() {
-	conf := internal.ViperConf
-	srvAddress := fmt.Sprintf("%s:%d", conf.AccountSrvConfig.Host, conf.AccountSrvConfig.Port)
+	conf := internal.AppConf
+	port := util.GenRandomPort()
+	srvAddress := fmt.Sprintf("%s:%d", conf.AccountSrvConfig.Host, port)
 
 	// 创建一个新的 Consul 客户端
 	defaultConfig := api.DefaultConfig()
@@ -29,11 +32,12 @@ func main() {
 		panic(err)
 	}
 
+	randId := uuid.New().String()
 	req := &api.AgentServiceRegistration{
 		Address: conf.AccountSrvConfig.Host,
-		Port:    conf.AccountSrvConfig.Port,
+		Port:    port,
 		Name:    conf.AccountSrvConfig.SrvName,
-		ID:      conf.AccountSrvConfig.SrvName,
+		ID:      randId,
 		Tags:    conf.AccountSrvConfig.Tags,
 	}
 
@@ -44,7 +48,7 @@ func main() {
 	}
 
 	// 监听并服务 gRPC 请求
-	lis, err := net.Listen("tcp", ":9095")
+	lis, err := net.Listen("tcp", srvAddress)
 	if err != nil {
 		log.Logger.Error(srvAddress + "监听失败：" + err.Error())
 		panic(err)

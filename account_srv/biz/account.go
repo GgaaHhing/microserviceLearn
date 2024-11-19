@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"testProject/microservice/account_srv/model"
 	"testProject/microservice/account_srv/proto/pb"
@@ -71,6 +72,7 @@ func (a *AccountServer) GetAccountList(ctx context.Context, req *pb.PagingReques
 		accountRes := Model2Pb(&account)
 		accountListRes.AccountList = append(accountListRes.AccountList, accountRes)
 	}
+	fmt.Println("有人调用 GetAccountList...............")
 	return accountListRes, nil
 }
 
@@ -83,6 +85,7 @@ func (a *AccountServer) GetAccountByMobile(ctx context.Context, req *pb.MobileRe
 		return nil, errors.New(custom_error.AccountNotFound)
 	}
 	accountRes := Model2Pb(&account)
+	fmt.Println("有人调用 GetAccountByMobile...............")
 	return accountRes, nil
 }
 

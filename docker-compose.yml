@@ -10,6 +10,9 @@ services:
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - ./data:/var/lib/mysql
+      # ./init-db.sql 表示 init-db.sql 文件位于与 docker-compose.yml 相同的目录中
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+
 
   redis:
     container_name: my-redis

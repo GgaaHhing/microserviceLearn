@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/hashicorp/consul/api"
 	"google.golang.org/grpc"
+	"testProject/microservice/account_srv/proto/pb"
+	// 要使用consul的负载算法，还需要导入一个匿名包：
+	_ "github.com/mbobakov/grpc-consul-resolver"
 	"net/http"
 	"regexp"
 	"strconv"
-	"testProject/microservice/account_srv/proto/pb"
 	"testProject/microservice/account_web/req"
 	"testProject/microservice/account_web/res"
 	"testProject/microservice/custom_error"
@@ -38,52 +39,27 @@ func HandleError(err error) string {
 	return ""
 }
 
-var accountSrvHost string
-var accountSrvPort int
 var client pb.AccountServiceClient
 
 func init() {
-	err := initConsul()
-	if err != nil {
-		panic(err)
-	}
-	err = initGrpcClient()
+	err := initGrpcClient()
 	if err != nil {
 		panic(err)
 	}
 }
 
-func initConsul() error {
-	//通过注册中心调用服务端
-	conf := internal.ViperConf
-	defaultConfig := api.DefaultConfig()
-	defaultConfig.Address = fmt.Sprintf("%s:%d", conf.ConsulConfig.Host, conf.ConsulConfig.Port)
-	apiClient, err := api.NewClient(defaultConfig)
-	if err != nil {
-		log.Logger.Error("AccountListHandler-创建consul失败: " + err.Error())
-		return err
-	}
-	serviceList, err := apiClient.Agent().ServicesWithFilter(`Service=="account_srv"`)
-	if err != nil {
-		log.Logger.Error("AccountListHandler-获取consul 服务列表失败: " + err.Error())
-	}
-	for _, v := range serviceList {
-		accountSrvHost = v.Address
-		accountSrvPort = v.Port
-	}
-	fmt.Println("accountSrvHost:", accountSrvHost, "\n",
-		"accountSrvPort: ", accountSrvPort)
-	return nil
-}
+//以前是在consul里面通过srvName获取它的port和host，现在使用Nacos，就不需要再initConsul了
 
 func initGrpcClient() error {
-	grpcAddr := fmt.Sprintf("%s:%d", accountSrvHost, accountSrvPort)
-	conn, err := grpc.Dial(grpcAddr, grpc.WithInsecure())
+	addr := fmt.Sprintf("%s:%d", internal.AppConf.ConsulConfig.Host, internal.AppConf.ConsulConfig.Port)
+	// consul://{address}/{srvName}?wait=14
+	dialAddr := fmt.Sprintf("consul://%s/%s?wait=14", addr, internal.AppConf.AccountSrvConfig.SrvName)
+	//grpc.Dial 已经处理了与 Consul 的交互，对于向GRPC的请求consul会自动帮助我们分配到每个启动实例上
+	conn, err := grpc.Dial(dialAddr, grpc.WithInsecure(), grpc.WithDefaultServiceConfig(`{"load_balancing_policy": "round_robin"}`))
 	if err != nil {
-		s := fmt.Sprintf("AccountListHandler-GRPC拨号失败: %v", err)
-		log.Logger.Info(s)
-		return err
+		log.Logger.Info(err.Error())
 	}
+	defer conn.Close()
 	client = pb.NewAccountServiceClient(conn)
 
 	return nil

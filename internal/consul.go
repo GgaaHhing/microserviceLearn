@@ -14,7 +14,7 @@ func Reg(name, host, id string, port int, tags []string) error {
 	// DefaultConfig返回一个默认的客户端配置
 	defaultConfig := api.DefaultConfig()
 	defaultConfig.Address = fmt.Sprintf("%s:%d",
-		ViperConf.ConsulConfig.Host, ViperConf.ConsulConfig.Port)
+		AppConf.ConsulConfig.Host, AppConf.ConsulConfig.Port)
 	//构建客户端
 	client, err := api.NewClient(defaultConfig)
 	if err != nil {
@@ -22,7 +22,7 @@ func Reg(name, host, id string, port int, tags []string) error {
 	}
 	//构建 注册服务 需要的参数
 	agentServiceRegistration := &api.AgentServiceRegistration{}
-	agentServiceRegistration.Address = defaultConfig.Address
+	agentServiceRegistration.Address = host
 	agentServiceRegistration.ID = id
 	agentServiceRegistration.Port = port
 	//用于标识、分类或过滤服务实例
@@ -44,7 +44,7 @@ func Reg(name, host, id string, port int, tags []string) error {
 func GetServiceList() error {
 	defaultConfig := api.DefaultConfig()
 	defaultConfig.Address = fmt.Sprintf("%s:%d",
-		ViperConf.ConsulConfig.Host, ViperConf.ConsulConfig.Port)
+		AppConf.ConsulConfig.Host, AppConf.ConsulConfig.Port)
 	//构建客户端
 	client, err := api.NewClient(defaultConfig)
 	if err != nil {
@@ -66,7 +66,7 @@ func GetServiceList() error {
 func FilterService(filter string) error {
 	defaultConfig := api.DefaultConfig()
 	defaultConfig.Address = fmt.Sprintf("%s:%d",
-		ViperConf.ConsulConfig.Host, ViperConf.ConsulConfig.Port)
+		AppConf.ConsulConfig.Host, AppConf.ConsulConfig.Port)
 	//构建客户端
 	client, err := api.NewClient(defaultConfig)
 	if err != nil {

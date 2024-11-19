@@ -33,7 +33,7 @@ func InitDB() {
 			LogLevel:                  logger.Info,
 		},
 	)
-	dbConf := ViperConf.DBConfig
+	dbConf := AppConf.DBConfig
 	conn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		dbConf.Username, dbConf.Password, dbConf.Host, dbConf.Port, dbConf.DBName)
 	DB, err = gorm.Open(mysql.Open(conn), &gorm.Config{

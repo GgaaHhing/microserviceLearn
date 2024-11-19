@@ -3,7 +3,7 @@ package jwt_op
 import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
-	"testProject/microservice/conf"
+	"testProject/microservice/internal"
 	"testProject/microservice/log"
 	"time"
 )
@@ -29,7 +29,7 @@ type JWT struct {
 }
 
 func NewJwt() *JWT {
-	return &JWT{SigningKey: []byte(conf.AppConf.JWTConfig.SigningKey)}
+	return &JWT{SigningKey: []byte(internal.AppConf.JWTConfig.SigningKey)}
 }
 
 // GenerateToken 生成JWTToken

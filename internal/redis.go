@@ -14,8 +14,8 @@ type RedisConfig struct {
 var RedisClient *redis.Client
 
 func InitRedis() {
-	host := ViperConf.RedisConfig.Host
-	port := ViperConf.RedisConfig.Port
+	host := AppConf.RedisConfig.Host
+	port := AppConf.RedisConfig.Port
 	addr := fmt.Sprintf("%s:%d", host, port)
 	RedisClient = redis.NewClient(&redis.Options{
 		Addr:     addr,

@@ -5,7 +5,16 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"testProject/microservice/account_web/handler"
+	"testProject/microservice/internal"
 )
+
+func init() {
+	conf := internal.AppConf.AccountWebConfig
+	err := internal.Reg(conf.SrvName, conf.Host, conf.SrvName, conf.Port, conf.Tags)
+	if err != nil {
+		panic(err)
+	}
+}
 
 func main() {
 	ip := flag.String("ip", "127.0.0.1", "ip 输入")
