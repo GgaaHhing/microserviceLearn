@@ -33,12 +33,17 @@ func main() {
 	}
 
 	randId := uuid.New().String()
+	healthAdd := fmt.Sprintf("http://%s/health", srvAddress)
 	req := &api.AgentServiceRegistration{
 		Address: conf.AccountSrvConfig.Host,
 		Port:    port,
 		Name:    conf.AccountSrvConfig.SrvName,
 		ID:      randId,
 		Tags:    conf.AccountSrvConfig.Tags,
+		Check: &api.AgentServiceCheck{
+			HTTP:     healthAdd,
+			Interval: "10s",
+		},
 	}
 
 	err = consulClient.Agent().ServiceRegister(req)

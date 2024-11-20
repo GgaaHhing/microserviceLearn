@@ -21,6 +21,8 @@ import (
 	"time"
 )
 
+var client pb.AccountServiceClient
+
 func HandleError(err error) string {
 	if err != nil {
 		switch err.Error() {
@@ -38,8 +40,6 @@ func HandleError(err error) string {
 	}
 	return ""
 }
-
-var client pb.AccountServiceClient
 
 func init() {
 	err := initGrpcClient()
