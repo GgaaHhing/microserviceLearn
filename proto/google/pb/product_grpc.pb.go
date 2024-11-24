@@ -77,7 +77,7 @@ type ProductServiceClient interface {
 	UpdateAdvertise(ctx context.Context, in *AdvertiseReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 品牌分类
 	CategoryBrandList(ctx context.Context, in *PagingReq, opts ...grpc.CallOption) (*CateGoryBrandListRes, error)
-	GetCategoryBrandList(ctx context.Context, in *CategoryItemReq, opts ...grpc.CallOption) (*BrandItemRes, error)
+	GetCategoryBrandList(ctx context.Context, in *CategoryItemReq, opts ...grpc.CallOption) (*BrandRes, error)
 	CreateCategoryBrand(ctx context.Context, in *CategoryBrandReq, opts ...grpc.CallOption) (*CategoryBrandRes, error)
 	DeleteCategoryBrand(ctx context.Context, in *CategoryBrandReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	UpdateCategoryBrand(ctx context.Context, in *CategoryBrandReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -291,9 +291,9 @@ func (c *productServiceClient) CategoryBrandList(ctx context.Context, in *Paging
 	return out, nil
 }
 
-func (c *productServiceClient) GetCategoryBrandList(ctx context.Context, in *CategoryItemReq, opts ...grpc.CallOption) (*BrandItemRes, error) {
+func (c *productServiceClient) GetCategoryBrandList(ctx context.Context, in *CategoryItemReq, opts ...grpc.CallOption) (*BrandRes, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BrandItemRes)
+	out := new(BrandRes)
 	err := c.cc.Invoke(ctx, ProductService_GetCategoryBrandList_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -362,7 +362,7 @@ type ProductServiceServer interface {
 	UpdateAdvertise(context.Context, *AdvertiseReq) (*emptypb.Empty, error)
 	// 品牌分类
 	CategoryBrandList(context.Context, *PagingReq) (*CateGoryBrandListRes, error)
-	GetCategoryBrandList(context.Context, *CategoryItemReq) (*BrandItemRes, error)
+	GetCategoryBrandList(context.Context, *CategoryItemReq) (*BrandRes, error)
 	CreateCategoryBrand(context.Context, *CategoryBrandReq) (*CategoryBrandRes, error)
 	DeleteCategoryBrand(context.Context, *CategoryBrandReq) (*emptypb.Empty, error)
 	UpdateCategoryBrand(context.Context, *CategoryBrandReq) (*emptypb.Empty, error)
@@ -436,7 +436,7 @@ func (UnimplementedProductServiceServer) UpdateAdvertise(context.Context, *Adver
 func (UnimplementedProductServiceServer) CategoryBrandList(context.Context, *PagingReq) (*CateGoryBrandListRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CategoryBrandList not implemented")
 }
-func (UnimplementedProductServiceServer) GetCategoryBrandList(context.Context, *CategoryItemReq) (*BrandItemRes, error) {
+func (UnimplementedProductServiceServer) GetCategoryBrandList(context.Context, *CategoryItemReq) (*BrandRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCategoryBrandList not implemented")
 }
 func (UnimplementedProductServiceServer) CreateCategoryBrand(context.Context, *CategoryBrandReq) (*CategoryBrandRes, error) {

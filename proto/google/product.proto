@@ -39,7 +39,7 @@ service ProductService{
 
   //品牌分类
   rpc CategoryBrandList(PagingReq) returns (CateGoryBrandListRes);
-  rpc GetCategoryBrandList(CategoryItemReq) returns (BrandItemRes);
+  rpc GetCategoryBrandList(CategoryItemReq) returns (BrandRes);
   rpc CreateCategoryBrand(CategoryBrandReq) returns (CategoryBrandRes);
   rpc DeleteCategoryBrand(CategoryBrandReq) returns (google.protobuf.Empty);
   rpc UpdateCategoryBrand(CategoryBrandReq) returns (google.protobuf.Empty);

@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+type ProductCategoryBrand struct {
+	BaseModel
+	CategoryID int32
+	BrandID    int32
+	Category   *Category
+	Brand      *Brand
+}
+
 type BaseModel struct {
 	ID        int32 `gorm:"primary_key"`
 	CreatedAt time.Time
@@ -18,6 +26,7 @@ type BaseModel struct {
 type Category struct {
 	BaseModel
 	Name             string `gorm:"type:varchar(32);not null"`
+	Level            int32  `gorm:"type:int"`
 	ParentCategoryID int32
 	ParentCategory   *Category
 	//子类品类
