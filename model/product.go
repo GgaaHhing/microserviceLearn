@@ -70,6 +70,8 @@ type Product struct {
 	IsPop bool `gorm:"default:false"`
 	//是否新品
 	IsNew bool `gorm:"default:false"`
+	//库存
+	Stocks int32 `gorm:"type:int;default:0"`
 
 	Name string `gorm:"type:varchar(64);not null"`
 	//商品编号
@@ -84,6 +86,7 @@ type Product struct {
 	RealPrice float32 `gorm:"type:float;not null"`
 	//简短的商品描述
 	ShortDesc  string   `gorm:"type:varchar(255);not null"`
+	Desc       string   `gorm:"type:varchar(255);not null"`
 	Images     []string `gorm:"type:varchar(1024);not null"`
 	DescImages []string `gorm:"type:varchar(1024);not null"`
 	//封面

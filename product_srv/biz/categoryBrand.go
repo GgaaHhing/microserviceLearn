@@ -41,13 +41,13 @@ func (p ProductServer) GetCategoryBrandList(ctx context.Context, req *pb.Categor
 	var itenListRes []*pb.BrandItemRes
 
 	if r := internal.DB.First(category, req.Id).RowsAffected; r < 1 {
-		return nil, errors.New("GetCategoryBrandList: " + custom_error.CategoryNotExits)
+		return nil, errors.New("GetCategoryBrandList: " + custom_error.CategoryBrandNotExits)
 	}
 
 	if r := internal.DB.Preload("Category").
 		Where(&model.ProductCategoryBrand{CategoryID: req.Id}).Find(&itemList).
 		RowsAffected; r < 1 {
-		return nil, errors.New("GetCategoryBrandList: " + custom_error.CategoryNotExits)
+		return nil, errors.New("GetCategoryBrandList: " + custom_error.CategoryBrandNotExits)
 	}
 
 	for _, item := range itemList {
